@@ -1,0 +1,774 @@
+local players = game:GetService("Players")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local player = players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Get the local player's username
+local localPlayerName = player.Name
+print("🎮 Player: " .. localPlayerName)
+
+local buttonPath = "MainUI.ShiftLockButton"
+local buttonName = "ShiftLockButton"
+local newPosition = UDim2.new(1.0, -148.0, 1.0, -4.0)
+local newSize = UDim2.new(0.0, 60.0, 0.0, 60.0)
+
+local hasUsedLife2 = false
+local isProcessing = false
+
+-- ===== SKIN PURCHASE & EQUIP =====
+local SKIN_NAME = "LegacyMS100TwoTime"
+local CHARACTER_NAME = "TwoTime"
+
+local function findSkinAsset()
+    local path = replicatedStorage:FindFirstChild("Assets")
+    if path then path = path:FindFirstChild("Skins") end
+    if path then path = path:FindFirstChild("Survivors") end
+    if path then path = path:FindFirstChild(CHARACTER_NAME) end
+    if path then path = path:FindFirstChild(SKIN_NAME) end
+    return path
+end
+
+local skinAsset = findSkinAsset()
+
+if not skinAsset then
+    warn("❌ Skin asset not found: " .. SKIN_NAME)
+else
+    print("✅ Found skin asset: " .. SKIN_NAME)
+end
+
+local function equipSkin()
+    if not skinAsset then
+        warn("❌ Cannot equip - skin asset not found")
+        return false
+    end
+    
+    print("🔄 Attempting to equip " .. SKIN_NAME .. "...")
+    
+    -- Add to purchased skins
+    local playerData = player:FindFirstChild("PlayerData")
+    if playerData then
+        local purchased = playerData:FindFirstChild("Purchased")
+        if purchased then
+            local skins = purchased:FindFirstChild("Skins")
+            if skins then
+                local exists = false
+                for _, child in ipairs(skins:GetChildren()) do
+                    if child.Name == SKIN_NAME then
+                        exists = true
+                        break
+                    end
+                end
+                if not exists then
+                    local v = Instance.new("IntValue")
+                    v.Name = SKIN_NAME
+                    v.Value = 1
+                    v.Parent = skins
+                    print("✅ Added " .. SKIN_NAME .. " to purchased skins")
+                end
+            end
+        end
+        
+        -- Set as equipped
+        local equipped = playerData:FindFirstChild("Equipped")
+        if equipped then
+            local survivor = equipped:FindFirstChild("Survivor")
+            if survivor then
+                survivor.Value = CHARACTER_NAME
+            end
+            
+            local skins = equipped:FindFirstChild("Skins")
+            if skins then
+                local skinValue = skins:FindFirstChild(CHARACTER_NAME)
+                if skinValue then
+                    skinValue.Value = SKIN_NAME
+                else
+                    local newSkin = Instance.new("StringValue")
+                    newSkin.Name = CHARACTER_NAME
+                    newSkin.Value = SKIN_NAME
+                    newSkin.Parent = skins
+                end
+                print("✅ Set " .. SKIN_NAME .. " as equipped skin")
+            end
+        end
+    end
+
+    -- Try remote events
+    local remote = replicatedStorage:FindFirstChild("Modules")
+    if remote then remote = remote:FindFirstChild("Network") end
+    if remote then remote = remote:FindFirstChild("Network") end
+    if remote then remote = remote:FindFirstChild("RemoteEvent") end
+    
+    if remote then
+        local formats = {
+            function() remote:FireServer("EquipState", {skinAsset, "buffer: 0xe3b68b4f68f3e1a7"}) end,
+            function() remote:FireServer("EquipState", {skinAsset}) end,
+            function() remote:FireServer("EquipState", {skinAsset.Name, "buffer: 0xe3b68b4f68f3e1a7"}) end,
+            function() remote:FireServer("EquipState", {skinAsset.Name}) end,
+            function() remote:FireServer("Equip", {skinAsset, "buffer: 0xe3b68b4f68f3e1a7"}) end,
+            function() remote:FireServer("Equip", {skinAsset}) end,
+            function() remote:FireServer(skinAsset) end,
+            function() remote:FireServer(skinAsset.Name) end,
+            function() remote:FireServer(CHARACTER_NAME, SKIN_NAME) end,
+        }
+
+        for _, func in ipairs(formats) do
+            local success, err = pcall(func)
+            if success then
+                print("✅ Equip successful!")
+                return true
+            end
+            task.wait(0.1)
+        end
+    end
+    
+    print("⚠️ Equip may have failed or remote not found")
+    return false
+end
+
+-- ===== CHECK IF LIFE2 IS ACTIVE =====
+local function isLife2(character)
+    if not character then return false end
+    
+    -- Check for IsSecondLife attribute
+    if character:GetAttribute("IsSecondLife") == true then
+        return true
+    end
+    
+    -- Check for Life2 model inside character
+    if character:FindFirstChild("Life2") then
+        return true
+    end
+    
+    return false
+end
+
+-- ===== CHANGE ICON =====
+local function changeTwoTimeIcon()
+    local tempUI = playerGui:FindFirstChild("TemporaryUI")
+    if not tempUI then return false end
+    
+    local playerInfo = tempUI:FindFirstChild("PlayerInfo")
+    if not playerInfo then return false end
+    
+    local currentSurvivors = playerInfo:FindFirstChild("CurrentSurvivors")
+    if not currentSurvivors then return false end
+    
+    for _, frame in ipairs(currentSurvivors:GetChildren()) do
+        if frame:IsA("Frame") then
+            local username = frame:FindFirstChild("Username")
+            if username and username:IsA("TextLabel") then
+                if string.find(username.Text, localPlayerName) then
+                    local icon = frame:FindFirstChild("Icon")
+                    if icon and icon:IsA("ImageLabel") then
+                        icon.Image = "rbxassetid://85628434666828"
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    
+    return false
+end
+
+-- ===== FIND SHIFTLOCK BUTTON =====
+local function findButton()
+    local function findGuiByPath(path)
+        local parts = {}
+        for part in string.gmatch(path, "[^%.]+") do
+            table.insert(parts, part)
+        end
+        
+        local current = playerGui
+        for _, partName in ipairs(parts) do
+            current = current and current:FindFirstChild(partName)
+            if not current then
+                return nil
+            end
+        end
+        return current
+    end
+    
+    local function findButtonByName(name)
+        for _, descendant in ipairs(playerGui:GetDescendants()) do
+            if descendant.Name == name and 
+               (descendant:IsA("GuiButton") or descendant:IsA("TextButton") or descendant:IsA("ImageButton")) then
+                return descendant
+            end
+        end
+        return nil
+    end
+    
+    local button = findGuiByPath(buttonPath)
+    if not button then
+        button = findButtonByName(buttonName)
+    end
+    
+    return button
+end
+
+-- ===== POSITION BUTTON =====
+local function positionButton(button)
+    if not button then
+        button = findButton()
+    end
+    
+    if button then
+        button.Position = newPosition
+        button.Size = newSize
+        return true
+    end
+    return false
+end
+
+-- ===== TRACK BUTTON POSITION =====
+local function setupButtonTracker(button)
+    if not button then return end
+    
+    button:GetPropertyChangedSignal("Position"):Connect(function()
+        local currentPos = button.Position
+        if math.abs(currentPos.X.Offset - newPosition.X.Offset) > 0.1 or
+           math.abs(currentPos.Y.Offset - newPosition.Y.Offset) > 0.1 or
+           math.abs(currentPos.X.Scale - newPosition.X.Scale) > 0.001 or
+           math.abs(currentPos.Y.Scale - newPosition.Y.Scale) > 0.001 then
+            button.Position = newPosition
+        end
+    end)
+    
+    button:GetPropertyChangedSignal("Size"):Connect(function()
+        local currentSize = button.Size
+        if math.abs(currentSize.X.Offset - newSize.X.Offset) > 0.1 or
+           math.abs(currentSize.Y.Offset - newSize.Y.Offset) > 0.1 or
+           math.abs(currentSize.X.Scale - newSize.X.Scale) > 0.001 or
+           math.abs(currentSize.Y.Scale - newSize.Y.Scale) > 0.001 then
+            button.Size = newSize
+        end
+    end)
+end
+
+-- ===== WEAPON DETECTION =====
+local function isDaggerOrWeapon(child)
+    if not child then return false end
+    
+    local name = child.Name
+    
+    if name == "GhostFire" or name == "Dagger" or name == "DaggerTemplate" then
+        return true
+    end
+    
+    if name == "Crouch" or name == "CrouchStart" or name == "CrouchIdle" or 
+       name == "CrouchWalk" or name == "CrouchRun" or name == "CrouchStab" then
+        return true
+    end
+    
+    local weaponKeywords = {
+        "Dagger", "Weapon", "Sword", "Blade", "Knife", "Tool", "HopperBin",
+        "Handle", "Grip", "Guard", "Pommel", "Tip", "Edge", "Point",
+        "Hitbox", "Collision", "Detector", "Query", "Damage", "Attack",
+        "Slash", "Stab", "Lunge", "Fire", "GhostFire"
+    }
+    
+    for _, keyword in ipairs(weaponKeywords) do
+        if string.find(name, keyword) then
+            return true
+        end
+    end
+    
+    if child:IsA("Tool") or child:IsA("HopperBin") then
+        return true
+    end
+    
+    if child:IsA("Model") then
+        for _, descendant in ipairs(child:GetDescendants()) do
+            if descendant:IsA("BasePart") then
+                local partName = descendant.Name
+                if string.find(partName, "Blade") or string.find(partName, "Handle") or 
+                   string.find(partName, "Guard") or string.find(partName, "Dagger") or
+                   string.find(partName, "Crouch") then
+                    return true
+                end
+            end
+        end
+    end
+    
+    return false
+end
+
+-- ===== SHOULD IGNORE PART =====
+local function shouldIgnorePart(partName)
+    if not partName then return true end
+    
+    local ignoreKeywords = {
+        "Hitbox", "Collision", "Detector", "Query", "Holder", 
+        "HumanoidRootPart", "Root", "Weapon", "Blade", "Handle",
+        "Guard", "Pommel", "Grip", "Dagger", "GhostFire",
+        "Lunge", "Stab", "Damage", "Attack",
+        "Crouch", "CrouchStart", "CrouchIdle", "CrouchWalk", 
+        "CrouchRun", "CrouchStab", "Ritual", "Respawn"
+    }
+    
+    for _, keyword in ipairs(ignoreKeywords) do
+        if string.find(partName, keyword) then
+            return true
+        end
+    end
+    
+    return false
+end
+
+-- ===== REMOVE ACCESSORIES =====
+local function instantlyRemoveAccessories(character)
+    if not character then return end
+    
+    local attachmentsToRemove = {}
+    
+    for _, child in ipairs(character:GetChildren()) do
+        if child.Name == "Head" then
+            continue
+        end
+        
+        if child.Name == "Humanoid" or child:IsA("Humanoid") then
+            continue
+        end
+        
+        if isDaggerOrWeapon(child) then
+            continue
+        end
+        
+        if child:IsA("Accessory") or child:IsA("Hat") or child:IsA("Clothing") or 
+           child:IsA("Shirt") or child:IsA("Pants") or child:IsA("ShirtGraphic") or
+           child.Name == "LegacyMS4_Attached" or child:IsA("Model") then
+            table.insert(attachmentsToRemove, child)
+        end
+    end
+    
+    for _, item in ipairs(attachmentsToRemove) do
+        item:Destroy()
+    end
+end
+
+-- ===== APPLY SKIN =====
+local function runSkinScriptInstant(forcedModelName)
+    local character = player.Character
+    if not character then 
+        return false 
+    end
+
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then 
+        return false 
+    end
+
+    local playersFolder = workspace:FindFirstChild("Players")
+    if not playersFolder then return false end
+
+    local survivors = playersFolder:FindFirstChild("Survivors")
+    if not survivors then return false end
+
+    if not character:IsDescendantOf(survivors) then 
+        return false 
+    end
+
+    -- Find the skin models
+    local legacyMS4 = replicatedStorage:FindFirstChild("Assets")
+    if legacyMS4 then legacyMS4 = legacyMS4:FindFirstChild("Skins") end
+    if legacyMS4 then legacyMS4 = legacyMS4:FindFirstChild("Survivors") end
+    if legacyMS4 then legacyMS4 = legacyMS4:FindFirstChild("TwoTime") end
+    if legacyMS4 then legacyMS4 = legacyMS4:FindFirstChild("LegacyMS100TwoTime") end
+    
+    if not legacyMS4 then
+        print("❌ Could not find skin folder!")
+        return true 
+    end
+
+    local config = legacyMS4:FindFirstChild("Config")
+    if not config then
+        print("❌ Could not find Config folder!")
+        return true
+    end
+
+    -- Get the correct model (Life1 or Life2)
+    local targetModel = config:FindFirstChild(forcedModelName)
+    if not targetModel then
+        print("❌ Could not find model: " .. forcedModelName)
+        return true
+    end
+
+    print("🔄 Applying " .. forcedModelName .. " for " .. localPlayerName)
+
+    instantlyRemoveAccessories(character)
+
+    local folder = Instance.new("Folder")
+    folder.Name = "LegacyMS4_Attached"
+    folder.Parent = character
+
+    local head = character:FindFirstChild("Head")
+    local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+    local leftArm = character:FindFirstChild("Left Arm") or character:FindFirstChild("LeftUpperArm")
+    local rightArm = character:FindFirstChild("Right Arm") or character:FindFirstChild("RightUpperArm")
+    local leftLeg = character:FindFirstChild("Left Leg") or character:FindFirstChild("LeftLowerLeg")
+    local rightLeg = character:FindFirstChild("Right Leg") or character:FindFirstChild("RightUpperLeg")
+
+    if head then
+        head.Transparency = 0
+        head.CanCollide = false
+        head.CanQuery = false
+        head.CanTouch = false
+    end
+
+    local modelPivot = targetModel:GetPivot()
+
+    for _, part in ipairs(targetModel:GetDescendants()) do
+        if part:IsA("BasePart") then
+            local partName = part.Name
+            
+            if shouldIgnorePart(partName) then
+                continue
+            end
+
+            local target = nil
+            if partName == "hair" or partName == "halo" or partName == "hat" then
+                target = head
+            elseif partName == "Torso" or partName == "graphic" or partName == "belt" or 
+                   partName == "scarf" or partName == "chest" or partName == "tail" or 
+                   partName == "wings" or partName == "wing1" or partName == "wing2" then
+                target = torso
+            elseif string.find(partName, "Left") or string.find(partName, "left") then
+                if string.find(partName, "Leg") then target = leftLeg
+                elseif string.find(partName, "Arm") or string.find(partName, "Hand") or 
+                       string.find(partName, "Glove") or string.find(partName, "Bandage") then 
+                    target = leftArm
+                else target = torso end
+            elseif string.find(partName, "Right") or string.find(partName, "right") then
+                if string.find(partName, "Leg") then target = rightLeg
+                elseif string.find(partName, "Arm") or string.find(partName, "Hand") or 
+                       string.find(partName, "Glove") or string.find(partName, "Bandage") then 
+                    target = rightArm
+                else target = torso end
+            else
+                target = torso
+            end
+
+            if target then
+                local newPart = part:Clone()
+                newPart.Size = part.Size
+                newPart.Transparency = part.Transparency or 0
+                newPart.Color = part.Color or Color3.new(1, 1, 1)
+                newPart.Material = part.Material or Enum.Material.SmoothPlastic
+                newPart.Anchored = false
+                newPart.CanCollide = false
+                newPart.CanQuery = false
+                newPart.CanTouch = false
+                newPart.Massless = true
+
+                local templateTargetPart = targetModel:FindFirstChild(target.Name, true)
+                if templateTargetPart and templateTargetPart:IsA("BasePart") then
+                    local offset = templateTargetPart.CFrame:ToObjectSpace(part.CFrame)
+                    newPart.CFrame = target.CFrame * offset
+                else
+                    local relativeCFrame = modelPivot:ToObjectSpace(part.CFrame)
+                    newPart.CFrame = target.CFrame * relativeCFrame
+                end
+
+                newPart.Parent = folder
+
+                local weld = Instance.new("Weld")
+                weld.Part0 = target
+                weld.Part1 = newPart
+                weld.C0 = target.CFrame:ToObjectSpace(newPart.CFrame)
+                weld.Parent = newPart
+            end
+        end
+    end
+
+    return true
+end
+
+-- ===== APPLY CORRECT SKIN =====
+local function applySkinInstant()
+    if isProcessing then return end
+    isProcessing = true
+    
+    local character = player.Character
+    local chosenModel = "Life1"
+    
+    if isLife2(character) or hasUsedLife2 then
+        chosenModel = "Life2"
+    end
+    
+    print("🔄 Applying " .. chosenModel .. " for " .. localPlayerName)
+    
+    local success = runSkinScriptInstant(chosenModel)
+    
+    local attempts = 0
+    while not success and attempts < 5 do
+        task.wait(0.1)
+        success = runSkinScriptInstant(chosenModel)
+        attempts = attempts + 1
+    end
+    
+    isProcessing = false
+    return success
+end
+
+-- ===== TRACK DEATH =====
+local function setupCharacterDeathTracking(character)
+    local humanoid = character:WaitForChild("Humanoid", 5)
+    if humanoid then
+        humanoid.Died:Connect(function()
+            print("💀 Player died - Resetting life state for next spawn")
+            hasUsedLife2 = false
+        end)
+    end
+end
+
+-- ===== MONITOR LIFE STATE =====
+local function monitorLifeState(character)
+    if not character then return end
+    
+    character.AttributeChanged:Connect(function(attributeName)
+        if attributeName == "IsSecondLife" and character:GetAttribute("IsSecondLife") == true then
+            print("✨ Detected Life 2 via Attribute! Switching skin to Life2...")
+            hasUsedLife2 = true
+            task.wait(0.1)
+            applySkinInstant()
+            changeTwoTimeIcon()
+        end
+    end)
+    
+    character.ChildAdded:Connect(function(child)
+        if child.Name == "Life2" then
+            print("✨ Detected Life 2 Model! Switching skin to Life2...")
+            hasUsedLife2 = true
+            task.wait(0.1)
+            applySkinInstant()
+            changeTwoTimeIcon()
+        end
+    end)
+end
+
+-- ===== MAIN =====
+
+-- Equip the skin first
+equipSkin()
+
+-- Handle character spawn/respawn
+player.CharacterAdded:Connect(function(char)
+    task.wait(0.3)
+    
+    local character = player.Character
+    if not character then return end
+    
+    setupCharacterDeathTracking(character)
+    monitorLifeState(character)
+    
+    if isLife2(character) then
+        hasUsedLife2 = true
+        print("🔄 Applying Life2 (second life)...")
+        applySkinInstant()
+        changeTwoTimeIcon()
+    else
+        if hasUsedLife2 then
+            print("🔄 Applying Life2 (second life)...")
+            applySkinInstant()
+            changeTwoTimeIcon()
+        else
+            print("🔄 Applying Life1 (first life)...")
+            applySkinInstant()
+        end
+    end
+end)
+
+player.CharacterAdded:Connect(function(char)
+    task.wait(0.1)
+    instantlyRemoveAccessories(char)
+end)
+
+-- Button positioning
+task.spawn(function()
+    task.wait(1)
+    local button = findButton()
+    if button then
+        positionButton(button)
+        setupButtonTracker(button)
+    end
+end)
+
+playerGui.DescendantAdded:Connect(function(descendant)
+    if descendant.Name == buttonName and 
+       (descendant:IsA("GuiButton") or descendant:IsA("TextButton") or descendant:IsA("ImageButton")) then
+        task.wait(0.1)
+        positionButton(descendant)
+                setupButtonTracker(descendant)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(3)
+        local button = findButton()
+        if button then
+            positionButton(button)
+        end
+    end
+end)
+
+-- Icon changes
+playerGui.DescendantAdded:Connect(function(descendant)
+    if descendant.Name == "TemporaryUI" and descendant:IsA("ScreenGui") then
+        task.wait(0.5)
+        changeTwoTimeIcon()
+    end
+end)
+
+playerGui.DescendantAdded:Connect(function(descendant)
+    if descendant.Name == "TwoTime" and descendant:IsA("Frame") then
+        task.wait(0.2)
+        changeTwoTimeIcon()
+    elseif descendant.Name == "Icon" and descendant:IsA("ImageLabel") then
+        local parent = descendant.Parent
+        if parent and parent:IsA("Frame") then
+            local username = parent:FindFirstChild("Username")
+            if username and username:IsA("TextLabel") then
+                if string.find(username.Text, localPlayerName) then
+                    descendant.Image = "rbxassetid://85628434666828"
+                end
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(5)
+        local tempUI = playerGui:FindFirstChild("TemporaryUI")
+        if tempUI then
+            local playerInfo = tempUI:FindFirstChild("PlayerInfo")
+            if playerInfo then
+                local currentSurvivors = playerInfo:FindFirstChild("CurrentSurvivors")
+                if currentSurvivors then
+                    for _, frame in ipairs(currentSurvivors:GetChildren()) do
+                        if frame:IsA("Frame") then
+                            local username = frame:FindFirstChild("Username")
+                            if username and username:IsA("TextLabel") then
+                                if string.find(username.Text, localPlayerName) then
+                                    local icon = frame:FindFirstChild("Icon")
+                                    if icon and icon:IsA("ImageLabel") and icon.Image ~= "rbxassetid://85628434666828" then
+                                        icon.Image = "rbxassetid://85628434666828"
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    task.wait(2)
+    changeTwoTimeIcon()
+end)
+
+-- ===== LIFE2 VFX ENHANCEMENT =====
+local function enableLife2VFX(character)
+    if not character then return end
+    
+    print("🔥 Enabling Life2 VFX...")
+    
+    -- Find the config
+    local legacyMS4 = replicatedStorage:FindFirstChild("Assets")
+    if legacyMS4 then legacyMS4 = legacyMS4:FindFirstChild("Skins") end
+    if legacyMS4 then legacyMS4 = legacyMS4:FindFirstChild("Survivors") end
+    if legacyMS4 then legacyMS4 = legacyMS4:FindFirstChild("TwoTime") end
+    if legacyMS4 then legacyMS4 = legacyMS4:FindFirstChild("LegacyMS100TwoTime") end
+    
+    if not legacyMS4 then return end
+    
+    local config = legacyMS4:FindFirstChild("Config")
+    if not config then return end
+    
+    -- Find or create Respawned folder
+    local respawned = character:FindFirstChild("Respawned")
+    if not respawned then
+        respawned = Instance.new("Folder")
+        respawned.Name = "Respawned"
+        respawned.Parent = character
+    end
+    
+    -- Copy RespawnVFX from config
+    local respawnVFX = config:FindFirstChild("RespawnVFX")
+    if respawnVFX and respawnVFX:IsA("ParticleEmitter") then
+        local newVFX = respawnVFX:Clone()
+        newVFX.Enabled = true
+        newVFX.Parent = respawned
+        print("✅ RespawnVFX enabled")
+    end
+    
+    -- Copy GhostFire from config
+    local ghostFire = config:FindFirstChild("GhostFire")
+    if ghostFire and ghostFire:IsA("Model") then
+        local existingGhostFire = character:FindFirstChild("GhostFire")
+        if existingGhostFire then
+            existingGhostFire:Destroy()
+        end
+        
+        local newGhostFire = ghostFire:Clone()
+        newGhostFire.Parent = character
+        print("✅ GhostFire enabled")
+    end
+    
+    -- Copy TwoTimeVFX from config
+    local twoTimeVFX = config:FindFirstChild("TwoTimeVFX")
+    if twoTimeVFX and twoTimeVFX:IsA("Part") then
+        local newVFXPart = twoTimeVFX:Clone()
+        newVFXPart.Parent = character
+        print("✅ TwoTimeVFX enabled")
+    end
+    
+    -- Enable all particle emitters in Respawned
+    for _, child in ipairs(respawned:GetChildren()) do
+        if child:IsA("ParticleEmitter") then
+            child.Enabled = true
+            print("✅ Enabled particle: " .. child.Name)
+        end
+    end
+end
+
+-- ===== MONITOR FOR LIFE2 VFX =====
+local function monitorLife2VFX(character)
+    if not character then return end
+    
+    character.ChildAdded:Connect(function(child)
+        if child.Name == "Life2" then
+            task.wait(0.5)
+            enableLife2VFX(character)
+        end
+    end)
+    
+    character.AttributeChanged:Connect(function(attribute)
+        if attribute == "IsSecondLife" and character:GetAttribute("IsSecondLife") == true then
+            task.wait(0.5)
+            enableLife2VFX(character)
+        end
+    end)
+end
+
+-- ===== ADD TO CHARACTER ADDED =====
+local oldCharacterAdded = player.CharacterAdded
+player.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    monitorLife2VFX(char)
+end)
+
+-- ===== PRINT COMPLETE =====
+print("✅ TwoTime script loaded for: " .. localPlayerName)
+print("✅ Features:")
+print("  - Auto-equip LegacyMS100TwoTime skin")
+print("  - Life1/Life2 detection")
+print("  - Life2 VFX (RespawnVFX, GhostFire, TwoTimeVFX)")
+print("  - Shiftlock button repositioning")
+print("  - TwoTime icon updates")
+print("  - Auto-remove accessories")
+print("========================================")

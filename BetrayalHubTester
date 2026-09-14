@@ -1,0 +1,82 @@
+-- Saved by UniversalSynSaveInstance (Join to Copy Games) https://discord.gg/wx4ThpAsmw
+
+local v1 = {
+	["DisplayName"] = "SoyG",
+	["Description"] = "That\'s why he\'s the GOAT!",
+	["RenderImage"] = "rbxassetid://77719160713438",
+	["Price"] = -5,
+	["Exclusive"] = true,
+	["Dev"] = false,
+	["Expressions"] = nil,
+	["Animations"] = nil,
+	["Sounds"] = nil,
+	["Expressions"] = {
+		["Happy"] = "rbxassetid://121243593961836",
+		["Default"] = "rbxassetid://134041789900971",
+		["Hurt"] = "rbxassetid://94528367009252",
+		["Injured"] = "rbxassetid://83771466963811",
+		["Dead"] = "rbxassetid://91663464934592",
+		["Drinking"] = "rbxassetid://137044452306020"
+	},
+	["Animations"] = {
+		["Block"] = "rbxassetid://88557287105521",
+		["Punch"] = "rbxassetid://87259391926321",
+		["ParryPunch"] = "rbxassetid://119850211147676",
+		["Charge"] = "rbxassetid://73502073176819"
+	},
+	["Sounds"] = {
+		["BlockStart"] = "rbxassetid://137986503339593",
+		["BlockSuccess"] = "rbxassetid://116616310968045",
+		["PunchWindup"] = "rbxassetid://109783473904542",
+		["Punch"] = "rbxassetid://127777649118195",
+		["Parry"] = "rbxassetid://99100240941590",
+		["BlackFlashPunchWindup"] = "rbxassetid://92831180929659",
+		["BlackFlashParry"] = "rbxassetid://112081768119093",
+		["ChargingStart"] = "rbxassetid://135100566264809",
+		["ChargingHit"] = "rbxassetid://123215129529409",
+		["ChargingCollide"] = "rbxassetid://131442454114300",
+		["ChargingTimeout"] = "rbxassetid://88616449890484"
+	}
+}
+local v2 = {
+	["Requests"] = {
+		["ElliotPizza"] = {
+			"yo, mind sharing a slice? i run faster with carbs.",
+			"if you\226\128\153ve got extra pizza, i\226\128\153m your guy.",
+			"pizza time?",
+			"im hungry."
+		},
+		["BuildermanSentry"] = {
+			"that spot looks solid, let the turret enjoy the view.",
+			"wherever you place it, i\226\128\153ll make it work.",
+			"yo wait... thats comp...",
+			"bro do ur job"
+		},
+		["BuildermanDispenser"] = {
+			"mind dropping a dispenser? could use a quick recharge.",
+			"Poot dispenser here!",
+			"I AM COMPSAKEN",
+			":("
+		},
+		["HemmorhageAsk"] = {
+			"hey, i\226\128\153m a bit scratched up. think you can help out?",
+			"nothing serious, just need a quick fix.",
+			"yeah, i\226\128\153m definitely gonna need even more bandages...",
+			"WHAT IS THAT THING OH MY GOD HELP ME NJSDFAIBNFISABFAS"
+		},
+		["DusekkarForceField"] = {
+			"hit me with a shield when you can, makes things easier.",
+			"gimme that bubble boost, i\226\128\153ll make good use of it.",
+			"little shield wouldn\226\128\153t hurt\226\128\148literally.",
+			"HELP BRO."
+		},
+		["Thanks"] = {
+			"thanks, man\226\128\166 i swear i play better off-camera.",
+			"thanks, i\226\128\153m legit warming up\226\128\166 for the past 20 minutes.",
+			"I AM COMPSAKEN",
+			"bro i suck at this game, jesus\226\128\166 thanks for the save."
+		}
+	}
+}
+v1.TextInteractions = v2
+return v1

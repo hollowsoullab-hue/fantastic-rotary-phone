@@ -1,0 +1,475 @@
+--[[
+	INFINITE SANITY + SKINWALKER ESP
+	Integrated with Obsidian GUI
+]]
+
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+Library.ForceCheckbox = false
+Library.ShowToggleFrameInKeybinds = true
+
+-- ===== WINDOW WITH WORKING ICON =====
+local Window = Library:CreateWindow({
+	Title = "FolkHub",
+	Footer = "Made By Mitsuki - Join the Discord Server MotherFucker",
+	Icon = "rbxassetid://137997269840915",  -- Working icon!
+	NotifySide = "Right",
+	ShowCustomCursor = true,
+})
+
+-- Variables
+local localPlayer = game:GetService("Players").LocalPlayer
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- ESP variables
+local npcs = "NPCs"
+local anomaly = "Skinwalker"
+local patient = "IsPatient"
+local visitor = "IsVisitor"
+local IGNORED_FLAGS = {
+	StoryForced = true,
+	AlwaysPatient = true
+}
+
+local RED_FILL = Color3.fromRGB(255, 45, 65)
+local RED_OUTLINE = Color3.fromRGB(255, 0, 25)
+local GREEN_FILL = Color3.fromRGB(55, 255, 120)
+local GREEN_OUTLINE = Color3.fromRGB(0, 255, 90)
+
+local CHECK_DELAY = 0.35
+local highlights = {}
+local espLoop = nil
+
+-- ===== TABS =====
+local Tabs = {
+	Main = Window:AddTab("Main", "brain"),
+	ESP = Window:AddTab("ESP", "eye"),
+	["UI Settings"] = Window:AddTab("UI Settings", "settings"),
+}
+
+-- ===== MAIN TAB - SANITY =====
+local MainGroup = Tabs.Main:AddLeftGroupbox("Sanity Control")
+
+-- Logo display at top of Main tab
+MainGroup:AddLabel("🧠 INFINITE SANITY 999999%")
+MainGroup:AddDivider()
+
+-- Toggle: Infinite Sanity
+MainGroup:AddToggle("InfiniteSanity", {
+	Text = "Infinite Sanity (999999%)",
+	Tooltip = "Locks your sanity at 999999% permanently",
+	Default = true,
+	Callback = function(Value)
+		if Value then
+			localPlayer:SetAttribute("Sanity", 999999)
+			localPlayer:SetAttribute("CheckInSanityRecovery", 999999)
+			localPlayer:SetAttribute("SanityLossReason", "IMMORTAL")
+			localPlayer:SetAttribute("SanityGainReason", "INFINITE POWER")
+			
+			spawn(function()
+				while Toggles.InfiniteSanity.Value do
+					localPlayer:SetAttribute("Sanity", 999999)
+					localPlayer:SetAttribute("CheckInSanityRecovery", 999999)
+					task.wait(0.1)
+				end
+			end)
+			
+			local remote = ReplicatedStorage:FindFirstChild("Util") 
+				and ReplicatedStorage.Util:FindFirstChild("Net") 
+				and ReplicatedStorage.Util.Net:FindFirstChild("RE/PlayerLostSanity")
+			
+			if remote then
+				local oldFire = remote.FireServer
+				remote.FireServer = function(self, ...)
+					return nil
+				end
+			end
+			
+			print("INFINITE SANITY ACTIVATED! MUAHAHA!")
+		else
+			print("Infinite sanity disabled")
+		end
+	end
+})
+
+-- Button: Set Sanity to 999999%
+MainGroup:AddButton({
+	Text = "Set Sanity to 999999%",
+	Func = function()
+		localPlayer:SetAttribute("Sanity", 999999)
+		localPlayer:SetAttribute("CheckInSanityRecovery", 999999)
+		print("Sanity set to 999999% MUAHAHA!")
+	end,
+	Tooltip = "Instantly sets your sanity to 999999%"
+})
+
+-- Button: Reset Sanity to Normal
+MainGroup:AddButton({
+	Text = "Reset Sanity to 100",
+	Func = function()
+		localPlayer:SetAttribute("Sanity", 100)
+		localPlayer:SetAttribute("CheckInSanityRecovery", 100)
+		print("Sanity reset to 100")
+	end,
+	Tooltip = "Resets sanity to normal levels",
+	Risky = true
+})
+
+-- Button: Get Sanity
+MainGroup:AddButton({
+	Text = "Check Sanity",
+	Func = function()
+		local sanity = localPlayer:GetAttribute("Sanity") or 0
+		print("Current Sanity: " .. sanity .. "%")
+	end,
+	Tooltip = "Shows your current sanity level"
+})
+
+-- Slider: Set Custom Sanity
+MainGroup:AddSlider("CustomSanity", {
+	Text = "Set Custom Sanity",
+	Default = 100,
+	Min = 0,
+	Max = 999999,
+	Rounding = 0,
+	Compact = false,
+	Callback = function(Value)
+		localPlayer:SetAttribute("Sanity", Value)
+		localPlayer:SetAttribute("CheckInSanityRecovery", Value)
+		print("Sanity set to: " .. Value)
+	end,
+	Tooltip = "Set your sanity to any value"
+})
+
+-- Divider
+MainGroup:AddDivider()
+
+-- ===== ESP TAB =====
+local ESPGroup = Tabs.ESP:AddLeftGroupbox("Skinwalker ESP")
+
+-- Toggle: ESP
+ESPGroup:AddToggle("ESPToggle", {
+	Text = "Enable Skinwalker ESP",
+	Tooltip = "Highlights Skinwalkers (Red) and Patients (Green)",
+	Default = true,
+	Callback = function(Value)
+		if Value then
+			startESP()
+			print("🔍 ESP activated!")
+		else
+			stopESP()
+			print("🔍 ESP deactivated")
+		end
+	end
+})
+
+-- Divider
+ESPGroup:AddDivider()
+
+-- Stats display
+ESPGroup:AddLabel("NPC Statistics:")
+
+local statsLabel = ESPGroup:AddLabel("Normal: 0 | Skinwalkers: 0")
+local patientLabel = ESPGroup:AddLabel("Patients: 0 | Visitors: 0")
+local ignoredLabel = ESPGroup:AddLabel("Ignored: 0 | Forced Ignored: 0")
+
+-- Divider
+ESPGroup:AddDivider()
+
+-- Legend
+ESPGroup:AddLabel("Legend:")
+ESPGroup:AddLabel("🔴 Red = Skinwalker")
+ESPGroup:AddLabel("🟢 Green = Normal Patient")
+
+-- ===== ESP FUNCTIONS =====
+local function destroyGameHighlights()
+	local count = 0
+	for _, highlight in pairs(Workspace:GetDescendants()) do
+		if highlight:IsA("Highlight") then
+			highlight:Destroy()
+			count += 1
+		end
+	end
+	for model, highlight in pairs(highlights) do
+		if highlight and highlight.Parent then
+			highlight:Destroy()
+			count += 1
+		end
+		highlights[model] = nil
+	end
+	if count > 0 then
+		print("🗑️ Destroyed " .. count .. " game highlights")
+	end
+	return count
+end
+
+local function getNPCFolder()
+	return workspace:FindFirstChild(npcs)
+end
+
+local function modelHasParts(model)
+	for _, descendant in ipairs(model:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			return true
+		end
+	end
+	return false
+end
+
+local function getDataValue(model, name)
+	local attribute = model:GetAttribute(name)
+	if attribute ~= nil then
+		return attribute
+	end
+	local child = model:FindFirstChild(name)
+	if child and child:IsA("ValueBase") then
+		return child.Value
+	end
+	return nil
+end
+
+local function hasData(model, name)
+	if model:GetAttribute(name) ~= nil then
+		return true
+	end
+	if model:FindFirstChild(name) then
+		return true
+	end
+	return false
+end
+
+local function isForcedIgnored(model)
+	for flagName in pairs(IGNORED_FLAGS) do
+		if hasData(model, flagName) then
+			return true
+		end
+	end
+	return false
+end
+
+local function isPatient(model)
+	return getDataValue(model, patient) == true
+end
+
+local function isVisitor(model)
+	return typeof(getDataValue(model, visitor)) == "number"
+end
+
+local function shouldScan(model)
+	if isForcedIgnored(model) then
+		return false
+	end
+	return isPatient(model) or isVisitor(model)
+end
+
+local function removeHighlight(model)
+	local highlight = highlights[model]
+	if highlight then
+		highlight:Destroy()
+	end
+	highlights[model] = nil
+end
+
+local function getHighlight(model)
+	if highlights[model] and highlights[model].Parent then
+		return highlights[model]
+	end
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "SkinwalkerHighlight"
+	highlight.Adornee = model
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.FillTransparency = 0.45
+	highlight.OutlineTransparency = 0
+	highlight.Parent = model
+	highlights[model] = highlight
+	return highlight
+end
+
+local function setHighlight(model, skinwalker)
+	local highlight = getHighlight(model)
+	if skinwalker then
+		highlight.FillColor = RED_FILL
+		highlight.OutlineColor = RED_OUTLINE
+	else
+		highlight.FillColor = GREEN_FILL
+		highlight.OutlineColor = GREEN_OUTLINE
+	end
+end
+
+local function cleanup(npcFolder)
+	for model, highlight in pairs(highlights) do
+		if not model.Parent or not model:IsDescendantOf(npcFolder) or not shouldScan(model) then
+			if highlight then
+				highlight:Destroy()
+			end
+			highlights[model] = nil
+		end
+	end
+end
+
+function startESP()
+	if espLoop then return end
+	
+	destroyGameHighlights()
+	
+	espLoop = task.spawn(function()
+		while Toggles.ESPToggle.Value do
+			local npcFolder = getNPCFolder()
+			
+			if npcFolder then
+				local safeCount = 0
+				local skinwalkerCount = 0
+				local ignoredCount = 0
+				local forcedIgnoredCount = 0
+				local patientCount = 0
+				local visitorCount = 0
+				
+				for _, item in ipairs(npcFolder:GetChildren()) do
+					if item:IsA("Model") and modelHasParts(item) then
+						if isForcedIgnored(item) then
+							forcedIgnoredCount += 1
+							removeHighlight(item)
+						else
+							local patient = isPatient(item)
+							local visitor = isVisitor(item)
+							
+							if patient then
+								patientCount += 1
+							end
+							
+							if visitor and not patient then
+								visitorCount += 1
+							end
+							
+							if patient or visitor then
+								local skinwalker = getDataValue(item, anomaly) == true
+								
+								if skinwalker then
+									skinwalkerCount += 1
+								else
+									safeCount += 1
+								end
+								
+								setHighlight(item, skinwalker)
+							else
+								ignoredCount += 1
+								removeHighlight(item)
+							end
+						end
+					end
+				end
+				
+				cleanup(npcFolder)
+				
+				statsLabel:SetText("Normal: " .. safeCount .. " | Skinwalkers: " .. skinwalkerCount)
+				patientLabel:SetText("Patients: " .. patientCount .. " | Visitors: " .. visitorCount)
+				ignoredLabel:SetText("Ignored: " .. ignoredCount .. " | Forced Ignored: " .. forcedIgnoredCount)
+				
+			else
+				for model in pairs(highlights) do
+					removeHighlight(model)
+				end
+				statsLabel:SetText("Missing folder: workspace.NPCs")
+				patientLabel:SetText("")
+				ignoredLabel:SetText("")
+			end
+			
+			task.wait(CHECK_DELAY)
+		end
+	end)
+end
+
+function stopESP()
+	if espLoop then
+		task.cancel(espLoop)
+		espLoop = nil
+	end
+	
+	for model in pairs(highlights) do
+		removeHighlight(model)
+	end
+end
+
+-- ===== KEYBINDS =====
+MainGroup:AddLabel("Keybinds"):AddKeyPicker("SanityKeybind", {
+	Default = "F1",
+	SyncToggleState = false,
+	Mode = "Toggle",
+	Text = "Toggle Infinite Sanity",
+	Callback = function(Value)
+		Toggles.InfiniteSanity:SetValue(Value)
+	end,
+})
+
+MainGroup:AddLabel(""):AddKeyPicker("ESPKeybind", {
+	Default = "F2",
+	SyncToggleState = false,
+	Mode = "Toggle",
+	Text = "Toggle Skinwalker ESP",
+	Callback = function(Value)
+		Toggles.ESPToggle:SetValue(Value)
+	end,
+})
+
+-- ===== UI SETTINGS =====
+local UIGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu")
+
+UIGroup:AddButton({
+	Text = "Toggle Menu",
+	Func = function()
+		Library:Toggle()
+	end,
+	Tooltip = "Show/Hide the menu"
+})
+
+UIGroup:AddButton({
+	Text = "Unload",
+	Func = function()
+		stopESP()
+		Library:Unload()
+	end,
+	Tooltip = "Unload the entire menu",
+	Risky = true
+})
+
+-- ===== THEME MANAGER =====
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+ThemeManager:SetFolder("Obsidian")
+SaveManager:SetFolder("Obsidian/sanity_esp")
+
+SaveManager:BuildConfigSection(Tabs["UI Settings"])
+ThemeManager:ApplyToTab(Tabs["UI Settings"])
+
+-- ===== INIT =====
+task.wait(0.5)
+
+destroyGameHighlights()
+
+Toggles.InfiniteSanity:SetValue(true)
+Toggles.ESPToggle:SetValue(true)
+
+print("=" .. string.rep("=", 60))
+print("🧠 INFINITE SANITY + SKINWALKER ESP")
+print("😈 MUAHAHA!")
+print("=" .. string.rep("=", 60))
+print("\n📋 FEATURES:")
+print("  • F1 - Toggle Infinite Sanity")
+print("  • F2 - Toggle Skinwalker ESP")
+print("\n📋 ESP:")
+print("  • Skinwalkers = RED highlight")
+print("  • Normal Patients = GREEN highlight")
+print("  • ALL game highlights DESTROYED on load")
+print("  • ONLY our ESP highlights remain")
+print("=" .. string.rep("=", 60))

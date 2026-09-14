@@ -1,0 +1,601 @@
+-- ts file was generated at discord.gg/25ms
+
+local v1 = getgenv and getgenv() or (_G or shared)
+
+print("[DEBUG] Script starting...")
+print("[DEBUG] v1 exists:", v1 ~= nil)
+
+if v1 and v1.MDH_BB and not v1.MDH_DEBUG then
+    print('MDH BOOBIES IS ALREADY RUNNING')
+else
+    if v1 then
+        v1.MDH_BB = true
+        print("[DEBUG] MDH_BB set to true")
+    else
+        print('GLOBAL ENVIRONMENTS FAILED (GETGENV / _G / SHARED)')
+    end
+
+    local _HttpService = game:GetService('HttpService')
+    print("[DEBUG] HttpService acquired")
+
+    local function v6(p3, p4, ...)
+        print("[DEBUG] Fetching URL:", p3)
+        local v5 = {
+            pcall(loadstring(game:HttpGet(p3), p4), ...),
+        }
+
+        if v5[1] == false then
+            print("[ERROR] Failed to load:", v5[2])
+            if OnError then
+                OnError()
+            end
+
+            (printconsole or print)(type(v5[2]) == 'string' and v5[2] or _HttpService:JSONEncode(v5))
+        else
+            print("[DEBUG] Successfully loaded:", p4)
+        end
+
+        table.remove(v5, 1)
+
+        return unpack(v5)
+    end
+
+    print("[DEBUG] Loading UniversalMethodFinder...")
+    local _httpsrawgithubusercontentcomluauSomeHubmainUniversalMethodFinderluau, u8 = v6('https://raw.githubusercontent.com/lua-u/SomeHub/main/UniversalMethodFinder.luau', 'UniversalMethodFinder')
+
+    print("[DEBUG] Running UniversalMethodFinder...")
+    _httpsrawgithubusercontentcomluauSomeHubmainUniversalMethodFinderluau({
+        quetp = '(...):find("queue") and (...):find("tele") and not ((...):find("run") or (...):find("script"))',
+        protgui = '(...):find("protect") and (...):find("gui") and not (...):find("un")',
+        cb = '(...):find("clipboard") or (...):find("copy") and (...):find("string")',
+        req = ' (...):find("request")',
+    })
+
+    print("[DEBUG] Method results - quetp:", u8.quetp ~= nil, "protgui:", u8.protgui ~= nil, "cb:", u8.cb ~= nil, "req:", u8.req ~= nil)
+
+    local v9
+
+    if u8.quetp then
+        print("[DEBUG] Setting up teleport queue...")
+        local _Players = game:GetService('Players')
+        local _LocalPlayer = _Players.LocalPlayer
+
+        v9 = _HttpService
+
+        while not _LocalPlayer do
+            _Players.ChildAdded:Wait()
+            _LocalPlayer = _Players.LocalPlayer
+        end
+        print("[DEBUG] LocalPlayer found:", _LocalPlayer.Name)
+
+        _LocalPlayer.OnTeleport:Connect(function()
+            print("[DEBUG] OnTeleport triggered, reloading script...")
+            u8.quetp('loadstring(game:HttpGet("https://gist.githubusercontent.com/htt-py/92db22eeefad0042a6da9117501ad827/raw/BBies.luau"))()')
+        end)
+    else
+        print("[DEBUG] Teleport queue not available")
+        v9 = _HttpService
+    end
+
+    local u12 = nil
+
+    local function v17(p13, ...)
+        u12 = u12 or game:GetService('StarterGui')
+        print("[DEBUG] v17 called with:", p13)
+
+        if not u12[p13] then
+            print("[DEBUG] Method not found:", p13)
+            return
+        end
+
+        local v14 = 10
+
+        while true do
+            local v15, v16 = pcall(u12[p13], u12, ...)
+
+            if not v15 then
+                print("[DEBUG] v17 attempt failed, retries left:", v14)
+                v14 = v14 - 1
+                task.wait(1)
+            end
+            if v15 or v14 == 0 then
+                if v15 then
+                    print("[DEBUG] v17 succeeded")
+                else
+                    print("[DEBUG] v17 timed out")
+                end
+                return v16
+            end
+        end
+    end
+
+    local v18 = {
+        Breast = true,
+        BreastPhysics = {
+            Target = 5,
+            Speed = 10,
+            Damper = 0.2,
+        },
+        BreastSize = 1,
+        Cheeks = true,
+        CheeksPhysics = {
+            Target = 3,
+            Speed = 10,
+            Damper = 0.1,
+        },
+        CheeksSize = 1,
+        Collisions = false,
+        ForceAllRigs = false,
+        Others = true,
+        Me = true,
+        Simulate_Physics_On_LocalPlayer_Only = false,
+    }
+    print("[DEBUG] Default settings created")
+
+    local u19 = v1.BB_Settings or ...
+
+    if u19 then
+        print("[DEBUG] Merging settings...")
+        local v20 = next
+        local v21 = nil
+
+        while true do
+            local v22, v23 = v20(v18, v21)
+
+            if v22 == nil then
+                break
+            end
+
+            v21 = v22
+
+            if u19[v22] == nil then
+                u19[v22] = v23
+            end
+        end
+    else
+        print("[DEBUG] Using default settings")
+        u19 = v18
+    end
+    if not v1.BB_Settings then
+        v1.BB_Settings = u19
+        print("[DEBUG] BB_Settings saved to global")
+    end
+
+    print("[DEBUG] Settings - Breast:", u19.Breast, "Cheeks:", u19.Cheeks, "Others:", u19.Others, "Me:", u19.Me)
+
+    local u30 = {
+        BreastScales = {
+            BRST = {
+                {
+                    Vector3.new(0, 0.026, 0),
+                    Vector3.new(0.93, 0.907, 0.904),
+                },
+                {
+                    Vector3.new(0, -0.1, 0),
+                    Vector3.new(1.356, 1.33, 1.327),
+                },
+            },
+            BRSTVisual = {
+                {
+                    Vector3.new(0, 0, 0),
+                    Vector3.new(0.877, 0.9, 0.819),
+                },
+                {
+                    Vector3.new(0, -0.1, -0.05),
+                    Vector3.new(1.166, 1.25, 1.23),
+                },
+            },
+        },
+        CheekScales = {
+            {
+                Vector3.new(0.83, 0.83, 0.9000000000000001),
+                Vector3.new(1.2, 1.2, 1.269),
+            },
+            {
+                Vector3.new(0.1, 0.2, 0),
+                Vector3.new(0, 0, 0),
+            },
+        },
+        BreastScaler = function(p24, p25, p26)
+            p25.Part.Mesh.Scale = p24.BreastScales.BRST[1][2]:Lerp(p24.BreastScales.BRST[2][2], p26)
+            p25.Part.Mesh.Offset = p24.BreastScales.BRST[1][1]:Lerp(p24.BreastScales.BRST[2][1], p26)
+            p25.Part.BRSTVisual.Mesh.Scale = p24.BreastScales.BRSTVisual[1][2]:Lerp(p24.BreastScales.BRSTVisual[2][2], p26)
+            p25.Part.BRSTVisual.Mesh.Offset = p24.BreastScales.BRSTVisual[1][1]:Lerp(p24.BreastScales.BRSTVisual[2][1], p26)
+        end,
+        CheekScaler = function(p27, p28, p29)
+            p28.Model.LeftCHK.Mesh.Scale = p27.CheekScales[1][1]:Lerp(p27.CheekScales[1][2], p29)
+            p28.Model.LeftCHK.Mesh.Offset = p27.CheekScales[2][1]:Lerp(p27.CheekScales[2][2], p29)
+            p28.Model.RightCHK.Mesh.Scale = p27.CheekScales[1][1]:Lerp(p27.CheekScales[1][2], p29)
+            p28.Model.RightCHK.Mesh.Offset = p27.CheekScales[2][1]:Lerp(p27.CheekScales[2][2], p29)
+        end,
+    }
+    print("[DEBUG] Scales loaded")
+
+    print("[DEBUG] Loading Spring module...")
+    local _httpsrawgithubusercontentcomQuentyNevermoreEngineversion2ModulesSharedPhysicsSpringlua = v6('https://raw.githubusercontent.com/Quenty/NevermoreEngine/version2/Modules/Shared/Physics/Spring.lua', 'Spring')
+    print("[DEBUG] Loading FemaleRig...")
+    local _httpsgistgithubusercontentcomhttpy9d7f2500ee984bda56a5d69b86654c29rawFemaleRigluau = v6('https://gist.githubusercontent.com/htt-py/9d7f2500ee984bda56a5d69b86654c29/raw/FemaleRig.luau', 'FemaleRig', u19.Collisions)
+
+    local function u35()
+        local v33 = {}
+
+        for v34 = 1, math.random(10, 20)do
+            v33[v34] = string.char(math.random(32, 126))
+        end
+
+        return table.concat(v33)
+    end
+    
+    local function u41(p36)
+        p36.Name = u35()
+
+        local v37, v38, v39 = ipairs(p36:GetDescendants())
+
+        while true do
+            local v40
+
+            v39, v40 = v37(v38, v39)
+
+            if v39 == nil then
+                break
+            end
+
+            v40.Name = u35()
+        end
+
+        if u8.protgui and not is_sirhurt_closure and not (syn and DrawingImmediate) then
+            print("[DEBUG] Protecting GUI...")
+            u8.protgui(p36)
+        end
+    end
+    
+    local function u45(p42, p43)
+        local _Weld = Instance.new('Weld')
+
+        _Weld.Parent = p42
+        _Weld.Part0 = p42
+        _Weld.Part1 = p43
+        _Weld.C0 = CFrame.new()
+        _Weld.C1 = CFrame.new()
+
+        return _Weld
+    end
+    
+    local function u55(p46, p47)
+        local _Shirt = p46:FindFirstChildOfClass('Shirt')
+        local _Pants = p46:FindFirstChildOfClass('Pants')
+
+        if _Shirt then
+            _Shirt = _Shirt.ShirtTemplate
+        end
+        if _Pants then
+            _Pants = _Pants.PantsTemplate
+        end
+
+        local v50, v51, v52 = ipairs(p47:GetDescendants())
+
+        while true do
+            local v53
+
+            v52, v53 = v50(v51, v52)
+
+            if v52 == nil then
+                break
+            end
+            if v53:IsA('Decal') then
+                local v54
+
+                if v53.Name ~= 'Shirt' or not _Shirt then
+                    v54 = (v53.Name ~= 'Pants' or not _Pants) and '' or _Pants
+                else
+                    v54 = _Shirt
+                end
+
+                v53.Texture = v54
+            end
+        end
+    end
+    
+    local function u66(p56, p57)
+        print("[DEBUG] Creating rig for:", p56.Name, "R6:", p57)
+        local u58 = _httpsgistgithubusercontentcomhttpy9d7f2500ee984bda56a5d69b86654c29rawFemaleRigluau:Clone()
+        local v59 = {
+            Torso = u58.T.Torso,
+            RightLeg = u58.R['Right Leg'],
+            LeftLeg = u58.L['Left Leg'],
+        }
+        local v60 = {}
+
+        if p57 then
+            v60.Torso = 'Torso'
+            v60.RightLeg = 'Right Leg'
+            v60.LeftLeg = 'Left Leg'
+        else
+            v60.Torso = 'UpperTorso'
+            v60.RightLeg = 'RightUpperLeg'
+            v60.LeftLeg = 'LeftUpperLeg'
+        end
+
+        v60.Torso = p56:WaitForChild(v60.Torso, math.huge)
+        v60.RightLeg = p56:WaitForChild(v60.RightLeg, math.huge)
+        v60.LeftLeg = p56:WaitForChild(v60.LeftLeg, math.huge)
+        v59.Torso.Color = v60.Torso.Color
+
+        if u19.Breast then
+            if u19.BreastSize then
+                u30:BreastScaler(v59.Torso, u19.BreastSize)
+            end
+            v59.Torso.Part.BRSTVisual.Color = v60.Torso.Color
+            print("[DEBUG] Breast added")
+        else
+            v59.Torso.Part:Destroy()
+        end
+        
+        if u19.Cheeks then
+            if u19.CheeksSize then
+                u30:CheekScaler(v59.Torso, u19.CheeksSize)
+            end
+            v59.Torso.Model.RightCHK.Color = v60.RightLeg.Color
+            v59.Torso.Model.LeftCHK.Color = v60.LeftLeg.Color
+            print("[DEBUG] Cheeks added")
+        else
+            v59.Torso.Model.RightCHK:Destroy()
+            v59.Torso.Model.LeftCHK:Destroy()
+        end
+        
+        if p57 then
+            v59.RightLeg.Color = v60.RightLeg.Color
+            v59.LeftLeg.Color = v60.LeftLeg.Color
+            v59.RightLeg = u58.R
+            v59.LeftLeg = u58.L
+        else
+            v59.RightLeg = nil
+            v59.LeftLeg = nil
+        end
+
+        v59.Torso = u58.T
+
+        u55(p56, u58)
+        p56.ChildAdded:Connect(function(p61)
+            if p61:IsA('Clothing') then
+                u55(p56, u58)
+            end
+        end)
+
+        local v62 = next
+        local v63 = v59
+        local v64 = nil
+
+        while true do
+            local v65
+
+            v64, v65 = v62(v59, v64)
+
+            if v64 == nil then
+                break
+            end
+
+            u45(v65, v60[v64])
+        end
+
+        if u19.Cheeks then
+            v63.BJ = v63.Torso.Torso.BTJ.BJ
+        end
+        if u19.Breast then
+            v63.BJJ = v63.Torso.Torso.BUJ.BJJ
+        end
+
+        u41(u58)
+        u58.Parent = p56
+
+        print("[DEBUG] Rig creation complete for:", p56.Name)
+        return v63
+    end
+
+    local _RunService = game:GetService('RunService')
+    local _Players2 = game:GetService('Players')
+    local _LocalPlayer2 = _Players2.LocalPlayer
+
+    while not _LocalPlayer2 do
+        _Players2.ChildAdded:Wait()
+        _LocalPlayer2 = _Players2.LocalPlayer
+    end
+    print("[DEBUG] LocalPlayer2 found:", _LocalPlayer2.Name)
+
+    local function u84(p70)
+        print("[DEBUG] Setting up physics for:", p70)
+        local _Torso = p70.Torso
+        local u72 = nil
+        local u73 = nil
+        local u74 = nil
+        local u75, u76, u77
+
+        if p70.BJ then
+            u75 = p70.BJ
+            u76 = _httpsrawgithubusercontentcomQuentyNevermoreEngineversion2ModulesSharedPhysicsSpringlua.new()
+            u76.Target = u19.CheeksPhysics.Target
+            u76.Speed = u19.CheeksPhysics.Speed
+            u76.Damper = u19.CheeksPhysics.Damper
+            u77 = u75.C0
+            print("[DEBUG] Cheek physics initialized")
+        else
+            u77 = nil
+            u76 = nil
+            u75 = nil
+        end
+        
+        if p70.BJJ then
+            u72 = p70.BJJ
+            u74 = _httpsrawgithubusercontentcomQuentyNevermoreEngineversion2ModulesSharedPhysicsSpringlua.new()
+            u74.Target = u19.BreastPhysics.Target
+            u74.Speed = u19.BreastPhysics.Speed
+            u74.Damper = u19.BreastPhysics.Damper
+            u73 = u72.C0
+            print("[DEBUG] Breast physics initialized")
+        end
+
+        local _Y = _Torso.Position.Y
+
+        _RunService.Stepped:Connect(function(_, p79)
+            task.spawn(function()
+                if _LocalPlayer2 and (_LocalPlayer2.Character and workspace.CurrentCamera) then
+                    local _CurrentCamera = workspace.CurrentCamera
+                    local _HumanoidRootPart = _LocalPlayer2.Character:FindFirstChild('HumanoidRootPart')
+
+                    if _HumanoidRootPart and (_HumanoidRootPart.Position - _CurrentCamera.CFrame.Position).Magnitude < 50 then
+                        local _Y2 = _Torso.Position.Y
+                        local v83 = _Y - _Y2
+
+                        _Y = _Y2
+
+                        if u74 then
+                            u74:TimeSkip(p79)
+                            u74:Impulse(v83)
+                        end
+                        if u76 then
+                            u76:TimeSkip(p79)
+                            u76:Impulse(v83)
+                        end
+                        if u72 then
+                            u72.C0 = u73 * CFrame.new(0, -0.02 * (u74.Velocity / 10), 0) * CFrame.Angles(-10 * math.rad(u74.Velocity), 0, 0)
+                        end
+                        if u75 then
+                            u75.C0 = u77 * CFrame.new(0, -0.05 * (u76.Velocity / 10), 0) * CFrame.Angles(2 * math.rad(u76.Velocity), 0, 0)
+                        end
+                    end
+                end
+            end)
+        end)
+        print("[DEBUG] Physics connected for:", p70)
+    end
+
+    local _Others = u19.Others
+
+    if _Others then
+        _Others = u19.Me
+    end
+
+    local function v93(p86, p87)
+        if p86:IsA('Model') then
+            if not (u19.Others or u19.Me) then
+                return
+            end
+
+            local v88 = _Players2:GetPlayerFromCharacter(p86)
+
+            if not _Others and (u19.Others and v88 == _Players2.LocalPlayer or u19.Me and v88 ~= _Players2.LocalPlayer) then
+                return
+            end
+
+            local v89 = p87 == nil and true or p87
+            print("[DEBUG] Processing model:", p86.Name, "v89:", v89)
+
+            task.delay(30, task.cancel, coroutine.running())
+
+            while true do
+                local _Humanoid = p86:FindFirstChildWhichIsA('Humanoid')
+
+                if not _Humanoid then
+                    task.wait()
+                end
+                if _Humanoid then
+                    print("[DEBUG] Found humanoid for:", p86.Name, "RigType:", _Humanoid.RigType)
+                    
+                    if not u19.ForceAllRigs and p86:FindFirstChild('CustomRig') then
+                        print("[DEBUG] CustomRig found, skipping")
+                        return
+                    end
+
+                    local v91 = u66(p86, _Humanoid.RigType == Enum.HumanoidRigType.R6)
+
+                    if v89 then
+                        if not (u19.Breast or u19.Cheeks) then
+                            print("[DEBUG] No breasts or cheeks enabled, skipping physics")
+                            return
+                        end
+                        if u19.Simulate_Physics_On_LocalPlayer_Only then
+                            local v92 = v88 or _Players2:GetPlayerFromCharacter(p86)
+
+                            if not v92 or v92 ~= _LocalPlayer2 then
+                                print("[DEBUG] Not local player, skipping physics")
+                                return
+                            end
+                        end
+
+                        print("[DEBUG] Starting physics for:", p86.Name)
+                        u84(v91)
+                    end
+                end
+            end
+        else
+            return
+        end
+    end
+
+    while game.GameId == 0 do
+        task.wait()
+    end
+    print("[DEBUG] GameId:", game.GameId)
+
+    if game.GameId ~= 1359573625 then
+        print("[DEBUG] Scanning workspace for models...")
+        workspace.DescendantAdded:Connect(function(desc)
+            print("[DEBUG] DescendantAdded:", desc.Name, desc.ClassName)
+            v93(desc, false)
+        end)
+
+        local v94, v95, v96 = ipairs(workspace:GetDescendants())
+
+        while true do
+            local v97
+
+            v96, v97 = v94(v95, v96)
+
+            if v96 == nil then
+                break
+            end
+
+            task.spawn(v93, v97, false)
+        end
+        print("[DEBUG] Workspace scan complete")
+    else
+        print("[DEBUG] Game is 1359573625, using special handling")
+        local _Live = workspace:WaitForChild('Live', math.huge)
+
+        _Live.ChildAdded:Connect(v93)
+
+        local v99, v100, v101 = ipairs(_Live:GetChildren())
+
+        while true do
+            local v102
+
+            v101, v102 = v99(v100, v101)
+
+            if v101 == nil then
+                break
+            end
+
+            task.spawn(v93, v102)
+        end
+
+        local _NPCs = workspace:WaitForChild('NPCs', math.huge)
+
+        _NPCs.ChildAdded:Connect(v93)
+
+        local v104, v105, v106 = ipairs(_NPCs:GetChildren())
+
+        while true do
+            local v107
+
+            v106, v107 = v104(v105, v106)
+
+            if v106 == nil then
+                break
+            end
+
+            task.spawn(v93, v107, false)
+        end
+    end
+    
+    print("[DEBUG] Script initialization complete!")
+end

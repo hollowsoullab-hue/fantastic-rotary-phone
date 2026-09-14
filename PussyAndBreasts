@@ -1,0 +1,148 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local REF_CFRAME = CFrame.new(291.30010986328125, 358.79998779296875, 480.74969482421875, 0.9999034404754639, -0, -0.013897508382797241, 0, 1, -0, 0.013897508382797241, 0, 0.9999034404754639)
+
+local function getRelativeCFrame(worldCFrame)
+    return REF_CFRAME:ToObjectSpace(worldCFrame)
+end
+
+local function StripClothingOnly(char)
+    for _, child in ipairs(char:GetChildren()) do
+        if child:IsA("Clothing") or child:IsA("ShirtGraphic") then
+            child:Destroy()
+        elseif child:IsA("Model") then
+            local name = child.Name:lower()
+            if name:find("clothing") or name:find("jacket") or name:find("pants") or name:find("shirt") or name:find("sweater") or name:find("dress") then
+                child:Destroy()
+            end
+        end
+    end
+end
+
+local function ApplyCompleteBoba()
+    local char = player.Character
+    if not char then return end
+    
+    StripClothingOnly(char)
+    -- ThinFemaleLegs function removed, so legs stay normal size.
+    
+    local torso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
+    if not torso then return end
+    
+    if char:FindFirstChild("CustomBoba") then
+        char.CustomBoba:Destroy()
+    end
+    
+    local folder = Instance.new("Folder")
+    folder.Name = "CustomBoba"
+    folder.Parent = char
+    
+    local originalSize = Vector3.new(2.04, 2.06, 1.06)
+    local scaleX = torso.Size.X / originalSize.X
+    local scaleY = torso.Size.Y / originalSize.Y
+    local scaleZ = torso.Size.Z / originalSize.Z
+    
+    -- === BREAST CFrames ===
+    local leftSkinWorld = CFrame.new(290.755859375, 358.8601379394531, 480.14642333984375, -0.9096437692642212, -0.23451340198516846, 0.34285831451416016, 0.39973461627960205, -0.7186571359634399, 0.5689854025840759, 0.11296283453702927, 0.6546263098716736, 0.7474648952484131)
+    local leftNippleWorld = CFrame.new(290.6434020996094, 358.90264892578125, 479.4735412597656, -0.7743892669677734, -0.6319825649261475, 0.03032258152961731, 0.6120918989181519, -0.7604285478591919, -0.21700669825077057, 0.16020260751247406, -0.1494874209165573, 0.9756990671157837)
+    local rightSkinWorld = CFrame.new(291.8045654296875, 358.88104248046875, 480.16949462890625, -0.9152247905731201, -0.273607075214386, -0.29581037163734436, 0.055925317108631134, -0.8132690191268921, 0.5791949033737183, -0.39904507994651794, 0.5135499238967896, 0.7596246600151062)
+    local rightNippleWorld = CFrame.new(292.0577087402344, 358.9395446777344, 479.53717041015625, -0.9031487703323364, -0.17063625156879425, -0.3939622640609741, 0.2961060404777527, -0.9120216369628906, -0.28379327058792114, -0.3108765482902527, -0.37296199798583984, 0.8742169141769409)
+    
+    -- === V PARTS CFrames (FRONT ONLY - DELETED THE BACK/BEHIND PARTS) ===
+    local vaWorld = CFrame.new(291.30291748046875, 357.64862060546875, 480.4573669433594, -0.9999995231628418, 0.00040949112735688686, -0.0008346793474629521, -0.0008721690392121673, -0.10223114490509033, 0.994760274887085, 0.0003220153448637575, 0.9947606325149536, 0.10223138332366943)
+    local va2World = CFrame.new(291.3028564453125, 357.6202697753906, 480.3157958984375, -0.9999996423721313, 0.0007294117822311819, -0.00046963689965195954, -0.0008079653489403427, -0.5859435796737671, 0.8103514313697815, 0.0003158991748932749, 0.810351550579071, 0.5859439373016357)
+    local vulWorld = CFrame.new(291.3630676269531, 357.65374755859375, 480.4295654296875, -0.9848568439483643, 0.1682710498571396, -0.04174777492880821, -0.08503179252147675, -0.25896990299224854, 0.9621355533599854, 0.15108811855316162, 0.9511151313781738, 0.2693560719490051)
+    local vul2World = CFrame.new(291.2435607910156, 357.65350341796875, 480.4295959472656, -0.9850952625274658, -0.16722701489925385, 0.040290214121341705, 0.08336268365383148, -0.2592442035675049, 0.9622076749801636, -0.1504620909690857, 0.9512245655059814, 0.26932018995285034)
+    local juiceWorld = CFrame.new(291.3025207519531, 357.69219970703125, 480.2099914550781, -0.9999995231628418, 0.0005564512102864683, -0.0007089247228577733, -0.0008547939942218363, -0.3363858461380005, 0.9417238235473633, 0.0002855511847883463, 0.9417240619659424, 0.33638620376586914)
+    local clWorld = CFrame.new(291.3023376464844, 357.68829345703125, 480.1970520019531, -0.9999998807907104, 0.0005250152316875756, -0.0007325104670599103, -0.0008415321935899556, -0.25307250022888184, 0.9674471616744995, 0.00032254622783511877, 0.9674474000930786, 0.2530725598335266)
+    local lowerWorld = CFrame.new(291.3044128417969, 357.5085144042969, 480.6340637207031, -0.9999996423721313, 0.0007294117822311819, -0.00046963689965195954, -0.0008079653489403427, -0.5859435796737671, 0.8103514313697815, 0.0003158991748932749, 0.810351550579071, 0.5859439373016357)
+    local lowerLeftWorld = CFrame.new(291.23419189453125, 357.50152587890625, 480.57403564453125, -0.3239332437515259, -0.905998945236206, -0.27245795726776123, -0.11438289284706116, -0.2483687400817871, 0.9618885517120361, -0.9391399621963501, 0.3427521884441376, -0.023175954818725586)
+    local lowerRightWorld = CFrame.new(291.373046875, 357.5013122558594, 480.5740661621094, -0.32355797290802, 0.9066224098205566, 0.2708247900009155, 0.11380419135093689, -0.24685585498809814, 0.9623465538024902, 0.9393396377563477, 0.3421958386898041, -0.023305296897888184)
+    local vSkinWorld = CFrame.new(291.4533386230469, 357.6796875, 480.4797058105469, -0.9844571352005005, 0.16367781162261963, -0.06367625296115875, -0.09241300821304321, -0.17444968223571777, 0.9803202152252197, 0.14934834837913513, 0.9709672927856445, 0.18686360120773315)
+    local vSkin2World = CFrame.new(291.1438903808594, 357.6801452636719, 480.4781799316406, -0.9847147464752197, -0.16269953548908234, 0.062175095081329346, 0.09077487885951996, -0.17473649978637695, 0.9804218411445618, -0.1486499309539795, 0.9710797667503357, 0.18683463335037231)
+    local vSkin4World = CFrame.new(291.3231201171875, 357.760986328125, 480.83935546875, -0.9999997615814209, -0.00005926867015659809, -0.0008611829252913594, -0.0008101403946056962, 0.40887606143951416, 0.9125896096229553, 0.00029802913195453584, 0.912589967250824, -0.40887606143951416)
+    -- Note: vSkin5World and vSkin6World deleted because they were the ones behind
+    
+    local function createPart(name, size, color, meshType, meshScale)
+        local part = Instance.new("Part")
+        part.Name = name
+        part.Size = size
+        part.Color = color
+        part.Material = Enum.Material.SmoothPlastic
+        part.CanCollide = false
+        part.Massless = true
+        part.Anchored = false
+        part.Parent = folder
+        
+        if meshType then
+            local mesh = Instance.new("SpecialMesh")
+            mesh.MeshType = meshType
+            if meshScale then
+                mesh.Scale = meshScale
+            end
+            mesh.Parent = part
+        end
+        
+        return part
+    end
+    
+    local function weldPart(part, worldCFrame)
+        local relativeCFrame = getRelativeCFrame(worldCFrame)
+        local weld = Instance.new("Weld")
+        weld.Part0 = torso
+        weld.Part1 = part
+        local scaledPos = relativeCFrame.Position * Vector3.new(scaleX, scaleY, scaleZ)
+        weld.C0 = CFrame.new(scaledPos) * relativeCFrame.Rotation
+        weld.Parent = part
+    end
+    
+    -- === BREASTS ===
+    local leftSkin = createPart("LeftBreast", Vector3.new(1.2598655223846436, 1.2590680122375488, 1.4745838642120361), Color3.fromRGB(234, 184, 146), Enum.MeshType.Sphere, Vector3.new(1, 1, 1))
+    local leftNipple = createPart("LeftNipple", Vector3.new(0.25253811478614807, 0.25253820419311523, 0.25253811478614807), Color3.fromRGB(255, 148, 148), Enum.MeshType.Sphere, Vector3.new(0.4946218430995941, 0.4946218430995941, 0.7066025733947754))
+    local rightSkin = createPart("RightBreast", Vector3.new(1.2598655223846436, 1.2590680122375488, 1.4745838642120361), Color3.fromRGB(234, 184, 146), Enum.MeshType.Sphere, Vector3.new(1, 1, 1))
+    local rightNipple = createPart("RightNipple", Vector3.new(0.25253811478614807, 0.25253820419311523, 0.25253811478614807), Color3.fromRGB(255, 148, 148), Enum.MeshType.Sphere, Vector3.new(0.4946218430995941, 0.4946218430995941, 0.7066025733947754))
+    
+    weldPart(leftSkin, leftSkinWorld)
+    weldPart(leftNipple, leftNippleWorld)
+    weldPart(rightSkin, rightSkinWorld)
+    weldPart(rightNipple, rightNippleWorld)
+    
+    -- === V PARTS (FRONT ONLY) ===
+    local va = createPart("V_va", Vector3.new(0.3918243944644928, 0.5404161214828491, 0.3750404417514801), Color3.fromRGB(255, 148, 148), Enum.MeshType.Sphere, Vector3.new(0.699999988079071, 1, 1))
+    local va2 = createPart("V_va2", Vector3.new(0.34033963084220886, 0.3403400778770447, 0.34034019708633423), Color3.fromRGB(255, 148, 148), Enum.MeshType.Sphere, Vector3.new(0.26065924763679504, 0.8546401262283325, 0.5411533117294312))
+    local vul = createPart("V_vul", Vector3.new(0.34033963084220886, 0.5779110193252563, 0.36347904801368713), Color3.fromRGB(255, 201, 201), Enum.MeshType.Sphere, Vector3.new(0.3051396310329437, 1, 1))
+    local vul2 = createPart("V_vul2", Vector3.new(0.34033963084220886, 0.5779110193252563, 0.36347904801368713), Color3.fromRGB(255, 201, 201), Enum.MeshType.Sphere, Vector3.new(0.3051396310329437, 1, 1))
+    local juice = createPart("V_juice", Vector3.new(0.34033963084220886, 0.3403400778770447, 0.34034019708633423), Color3.fromRGB(255, 201, 201), Enum.MeshType.Sphere, Vector3.new(0.0699358657002449, 0.10383700579404831, 0.5085670948028564))
+    local cl = createPart("V_cl", Vector3.new(0.34033963084220886, 0.3403400778770447, 0.34034019708633423), Color3.fromRGB(255, 201, 201), Enum.MeshType.Sphere, Vector3.new(0.18858975172042847, 0.1970651000738144, 0.36024942994117737))
+    local lower = createPart("V_lower", Vector3.new(0.34033963084220886, 0.3403400778770447, 0.34034019708633423), Color3.fromRGB(255, 201, 201), Enum.MeshType.Sphere, Vector3.new(0.7119677662849426, 0.2543078362941742, 0.24451801180839539))
+    local lowerLeft = createPart("V_lowerLeft", Vector3.new(0.34033963084220886, 0.3403400778770447, 0.34034019708633423), Color3.fromRGB(255, 201, 201), Enum.MeshType.Sphere, Vector3.new(0.581024706363678, 0.2006310373544693, 0.24451801180839539))
+    local lowerRight = createPart("V_lowerRight", Vector3.new(0.34033963084220886, 0.3403400778770447, 0.34034019708633423), Color3.fromRGB(255, 201, 201), Enum.MeshType.Sphere, Vector3.new(0.581024706363678, 0.2006310373544693, 0.24451801180839539))
+    local vSkin = createPart("V_skin", Vector3.new(0.5730654001235962, 0.6235820055007935, 0.47645464539527893), Color3.fromRGB(234, 184, 146), Enum.MeshType.Sphere, Vector3.new(0.6000000238418579, 1, 1))
+    local vSkin2 = createPart("V_skin2", Vector3.new(0.5730654001235962, 0.6235820055007935, 0.47645464539527893), Color3.fromRGB(234, 184, 146), Enum.MeshType.Sphere, Vector3.new(0.6000000238418579, 1, 1))
+    local vSkin4 = createPart("V_skin4", Vector3.new(1.3268741369247437, 0.8721310496330261, 0.6827187538146973), Color3.fromRGB(234, 184, 146), Enum.MeshType.Sphere, Vector3.new(0.699999988079071, 1, 1))
+    -- Note: vSkin5 and vSkin6 parts deleted here as well
+    
+    weldPart(va, vaWorld)
+    weldPart(va2, va2World)
+    weldPart(vul, vulWorld)
+    weldPart(vul2, vul2World)
+    weldPart(juice, juiceWorld)
+    weldPart(cl, clWorld)
+    weldPart(lower, lowerWorld)
+    weldPart(lowerLeft, lowerLeftWorld)
+    weldPart(lowerRight, lowerRightWorld)
+    weldPart(vSkin, vSkinWorld)
+    weldPart(vSkin2, vSkin2World)
+    weldPart(vSkin4, vSkin4World)
+    
+    print("[✓] Complete boba applied: clothes stripped, BEHIND/ANUS parts deleted!")
+end
+
+player.CharacterAdded:Connect(function(char)
+    task.wait(1.5)
+    pcall(function() ApplyCompleteBoba() end)
+end)
+
+task.wait(2)
+pcall(function() ApplyCompleteBoba() end)
